@@ -307,3 +307,32 @@ function updateReservationsList() {
         `;
     });
 }
+
+function showAlert(type, message) {
+    const banner = document.getElementById("alert-banner");
+    const icon = document.getElementById("alert-icon");
+    const messageDiv = document.getElementById("alert-message");
+
+    if (!banner || !icon || !messageDiv) return;
+
+    banner.className = "mb-4 p-3 rounded-xl text-xs font-semibold flex items-start gap-2.5 transition-all";
+    
+    if (type === "success") {
+        banner.classList.add("bg-emerald-50", "text-emerald-800", "border", "border-emerald-200");
+        icon.className = "fa-solid fa-circle-check text-emerald-600";
+    } else if (type === "warning" || type === "info") {
+        banner.classList.add("bg-amber-50", "text-amber-800", "border", "border-amber-200");
+        icon.className = "fa-solid fa-triangle-exclamation text-amber-600";
+    } else if (type === "danger") {
+        banner.classList.add("bg-rose-50", "text-rose-800", "border", "border-rose-200");
+        icon.className = "fa-solid fa-circle-exclamation text-rose-600";
+    }
+
+    messageDiv.innerHTML = message;
+    banner.classList.remove("hidden");
+}
+
+function clearAlert() {
+    const banner = document.getElementById("alert-banner");
+    if (banner) banner.classList.add("hidden");
+}
