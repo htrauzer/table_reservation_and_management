@@ -65,11 +65,18 @@ class ReservationService:
         if r_data.reservation_time < datetime.datetime.utcnow():
             raise RestaurantException("Reservations cannot be made for past dates or times.")
 
-        # 4. Check time conflict window
+        # 4. Enforce Operating Hours: 10:00 to 00:00 (Hour must be between 10 and 23 inclusive)
+        booking_hour = r_data.reservation_time.hour
+        if booking_hour < 10:
+            raise RestaurantException(
+                "Operating hours are from 10:00 to 00:00. Please select a valid dining slot."
+            )
+
+        # 5. Check time conflict window
         if not cls.is_table_available(db, r_data.table_id, r_data.reservation_time):
             raise TableConflictException()
 
-        # 5. Save the reservation
+        # 6. Save the reservation
         db_reservation = ReservationModel(**r_data.model_dump())
         db.add(db_reservation)
         db.commit()
