@@ -336,3 +336,13 @@ function clearAlert() {
     const banner = document.getElementById("alert-banner");
     if (banner) banner.classList.add("hidden");
 }
+
+// Window init loading logic
+window.onload = function() {
+    updateNavigationClock();
+    configureDateTimeInputLimits();
+    loadAppFromBackend();
+    
+    // Periodically update clock
+    setInterval(updateNavigationClock, 60000);
+}
