@@ -256,3 +256,20 @@ async function handleFormSubmission(event) {
         showAlert("danger", err.message);
     }
 }
+
+// Filters buttons style toggle and logic distribution
+function filterTables(type) {
+    currentFilter = type;
+    ['filter-all', 'filter-available', 'filter-large'].forEach(btnId => {
+        const btn = document.getElementById(btnId);
+        if (btn) {
+            btn.className = "px-3.5 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-100 transition-all";
+        }
+    });
+
+    const activeBtn = document.getElementById(`filter-${type}`);
+    if (activeBtn) {
+        activeBtn.className = "px-3.5 py-1.5 rounded-lg text-xs font-medium bg-slate-900 text-white transition-all";
+    }
+    renderTables();
+}
