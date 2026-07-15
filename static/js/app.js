@@ -4,11 +4,16 @@ let backendTables = [];
 let backendReservations = [];
 // Track the user's currently selected table node
 let selectedTable = null;
-// Track the active UI filter status ('all', 'available', 'large')
+// Track the active UI filter status ('all', 'available', 'cap_2', 'cap_4', 'cap_6', 'cap_8', 'cap_10')
 let currentFilter = 'all';
+
+// Track selected schedule states
+let selectedDate = "";
+let selectedTime = ""; // "HH:MM" format
 
 // Constant buffer window configuration matching FastAPI's conflict rules (2 hours)
 const RESERVATION_BUFFER_HOURS = 2;
+
 
 // Update real-time display in the navigation bar
 const updateNavigationClock = () => {
@@ -20,16 +25,90 @@ const updateNavigationClock = () => {
     }
 };
 
-// Configure boundary limits for the date-time selection input (prevent past bookings)
-const configureDateTimeInputLimits = () => {
-    const dtInput = document.getElementById("cust-time");
-    if (dtInput) {
-        const now = new Date();
-        // Convert to local ISO string standard format required by datetime-local input fields
-        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-        dtInput.min = now.toISOString().slice(0, 16);
+// Configures minimum date limits to prevent bookings in the past
+const configureDateInputLimits = () => {
+    const dateInput = document.getElementById("cust-date");
+    if (dateInput) {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        dateInput.min = `${year}-${month}-${day}`;
+        // Default select today
+        dateInput.value = `${year}-${month}-${day}`;
+        selectedDate = dateInput.value;
     }
 };
+
+// Generates the time options inside the select box element (10:00 to 23:00)
+function populateTimeSelect() {
+    const timeSelect = document.getElementById("time-select");
+    if (!timeSelect) return;
+
+    const previousValue = selectedTime;
+    timeSelect.innerHTML = "";
+
+    // Add placeholder option
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.text = "Click to pick a time slot";
+    placeholder.disabled = true;
+    placeholder.selected = !selectedTime;
+    timeSelect.appendChild(placeholder);
+    
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+
+    let hasSelectedValidTime = false;
+
+    // Loop through operating hours: 10:00 to 23:00 (closing at 00:00)
+    for (let hour = 10; hour <= 23; hour++) {
+        const timeStr = `${String(hour).padStart(2, '0')}:00`;
+        const isPastSlot = (selectedDate === todayStr && (hour < currentHour || (hour === currentHour && currentMinute > 0)));
+
+        const option = document.createElement("option");
+        option.value = timeStr;
+        option.text = timeStr;
+        
+        if (isPastSlot) {
+            option.disabled = true;
+            option.text += " (Past)";
+            option.className = "text-slate-300 font-medium";
+        } else {
+            option.className = "text-slate-800 font-semibold";
+            if (previousValue === timeStr) {
+                option.selected = true;
+                hasSelectedValidTime = true;
+            }
+        }
+        timeSelect.appendChild(option);
+    }
+
+    // Reset selected state if the pre-selected slot becomes invalid (e.g. date changes to today and slot has passed)
+    if (!hasSelectedValidTime && previousValue !== "") {
+        selectedTime = "";
+        timeSelect.value = "";
+    }
+}
+
+
+function handleDateChange() {
+    const dateInput = document.getElementById("cust-date");
+    if (dateInput) {
+        selectedDate = dateInput.value;
+        // Regenerate list of options and check validity of selected times
+        populateTimeSelect();
+        evaluateCalendarSchedule();
+    }
+}
+
+function handleTimeSelectChange(timeStr) {
+    selectedTime = timeStr;
+    evaluateCalendarSchedule();
+    clearAlert();
+}
 
 // Load tables and reservations directly from FastAPI database models
 async function loadAppFromBackend() {
@@ -42,19 +121,15 @@ async function loadAppFromBackend() {
 
         evaluateCalendarSchedule();
     } catch (err) {
-        showAlert("danger", "Could not connect to FastAPI server. Please verify your Uvicorn backend is running.");
+        showAlert("danger", "Could not connect to FastAPI server. Please verify your backend is running.");
     }
 }
 
+
 // Scans active calendar values to evaluate real-time reservation scheduling overlaps
 function evaluateCalendarSchedule() {
-    const dtInput = document.getElementById("cust-time");
-    if (!dtInput) return;
-
-    const selectedTimeVal = dtInput.value;
-    
-    // If no specific booking date/time is selected yet, fall back to default table statuses
-    if (!selectedTimeVal) {
+    if (!selectedDate || !selectedTime) {
+        // If date-time is incomplete, set all active tables to available
         backendTables.forEach(table => {
             table.status = table.is_active ? 'available' : 'out_of_service';
         });
@@ -62,20 +137,7 @@ function evaluateCalendarSchedule() {
         return;
     }
 
-    const targetTime = new Date(selectedTimeVal);
-    const selectedHour = targetTime.getHours();
-
-    // Check operating hours: 10:00 AM to 12:00 AM (midnight)
-    // Note: Hours < 10 (0 to 9) represent early morning bookings which are closed
-    if (selectedHour < 10) {
-        showAlert("danger", "Our restaurant operates between 10:00 and 00:00. Please select an open operating slot.");
-        dtInput.value = ""; // Reset invalid date selection
-        backendTables.forEach(table => {
-            table.status = table.is_active ? 'available' : 'out_of_service';
-        });
-        renderTables();
-        return;
-    }
+    const targetTime = new Date(`${selectedDate}T${selectedTime}:00`);
 
     backendTables.forEach(table => {
         if (!table.is_active) {
@@ -101,7 +163,7 @@ function evaluateCalendarSchedule() {
         }
     });
 
-    // Deselect selected table if it becomes booked at the newly chosen date-time
+    // Deselect table if it becomes booked at the newly chosen date-time
     if (selectedTable) {
         const refreshedState = backendTables.find(t => t.id === selectedTable.id);
         if (refreshedState && refreshedState.status !== 'available') {
@@ -109,13 +171,13 @@ function evaluateCalendarSchedule() {
             document.getElementById("booking-form").reset();
             document.getElementById("booking-form").classList.add("opacity-50", "pointer-events-none");
             document.getElementById("table-info-card").innerHTML = `<p class="text-sm font-semibold text-slate-500 text-center py-4">No Table Selected</p>`;
-            dtInput.value = selectedTimeVal; // Retain current time choice
         }
     }
 
     renderTables();
     updateReservationsList();
 }
+
 
 // Builds and appends responsive table map models into specific floor plan zones
 function renderTables() {
@@ -128,7 +190,17 @@ function renderTables() {
     backendTables.forEach(table => {
         // Apply active UI filtration parameters
         if (currentFilter === 'available' && table.status !== 'available') return;
-        if (currentFilter === 'large' && table.capacity < 4) return;
+        
+        // Handle dropdown capacity filtration limits
+        if (currentFilter.startsWith('cap_')) {
+            const reqCap = currentFilter.split('_')[1];
+            if (reqCap === '10') {
+                if (table.capacity < 10) return;
+            } else {
+                const capNum = parseInt(reqCap);
+                if (table.capacity !== capNum) return;
+            }
+        }
 
         const zoneContainer = document.getElementById(`${table.zone}-tables`);
         if (!zoneContainer) return;
@@ -175,9 +247,8 @@ function renderTables() {
 
 // Triggers validation checks and highlights clicked floor plan tables
 function selectTable(id) {
-    const dtInput = document.getElementById("cust-time");
-    if (!dtInput || !dtInput.value) {
-        showAlert("warning", "Please select your booking date & time first before choosing a table.");
+    if (!selectedDate || !selectedTime) {
+        showAlert("warning", "Please pick a booking Date and Reservation Time dropdown slot first!");
         return;
     }
 
@@ -213,7 +284,7 @@ function selectTable(id) {
         `;
     }
 
-    // Activate the registration form
+    // Activate registration form
     document.getElementById("selected-table-id").value = table.id;
     const partyInput = document.getElementById("cust-party");
     if (partyInput) {
@@ -228,16 +299,18 @@ function selectTable(id) {
     clearAlert();
 }
 
+
 // Validates client inputs and submits booking parameters to FastAPI POST router
 async function handleFormSubmission(event) {
     event.preventDefault();
-    if (!selectedTable) return;
+    if (!selectedTable || !selectedDate || !selectedTime) return;
 
     const name = document.getElementById("cust-name").value.trim();
     const email = document.getElementById("cust-email").value.trim();
     const phone = document.getElementById("cust-phone").value.trim();
     const partySize = parseInt(document.getElementById("cust-party").value);
-    const time = document.getElementById("cust-time").value;
+    
+    const targetISOString = new Date(`${selectedDate}T${selectedTime}:00`).toISOString();
 
     // Safety constraint: double-check that guests do not exceed selected table capacities
     if (partySize > selectedTable.capacity) {
@@ -250,7 +323,7 @@ async function handleFormSubmission(event) {
         customer_email: email,
         customer_phone: phone,
         party_size: partySize,
-        reservation_time: new Date(time).toISOString(),
+        reservation_time: targetISOString,
         table_id: selectedTable.id
     };
 
@@ -269,6 +342,7 @@ async function handleFormSubmission(event) {
 
         // Clean user input controls upon successful transaction
         selectedTable = null;
+        selectedTime = "";
         document.getElementById("booking-form").reset();
         document.getElementById("booking-form").classList.add("opacity-50", "pointer-events-none");
         document.getElementById("table-info-card").innerHTML = `<p class="text-sm font-semibold text-slate-500 text-center py-4">No Table Selected</p>`;
@@ -276,6 +350,7 @@ async function handleFormSubmission(event) {
         showAlert("success", "Reservation successfully completed! Checked and recorded into system database.");
         
         // Refresh database states dynamically
+        populateTimeSelect();
         await loadAppFromBackend();
 
     } catch (err) {
@@ -286,18 +361,38 @@ async function handleFormSubmission(event) {
 // Filters buttons style toggle and logic distribution
 function filterTables(type) {
     currentFilter = type;
-    ['filter-all', 'filter-available', 'filter-large'].forEach(btnId => {
-        const btn = document.getElementById(btnId);
-        if (btn) {
-            btn.className = "px-3.5 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-100 transition-all";
-        }
-    });
-
-    const activeBtn = document.getElementById(`filter-${type}`);
-    if (activeBtn) {
-        activeBtn.className = "px-3.5 py-1.5 rounded-lg text-xs font-medium bg-slate-900 text-white transition-all";
+    
+    // Reset capacity select dropdown if direct preset filters are clicked
+    const capSelect = document.getElementById("capacity-filter");
+    if ((type === 'all' || type === 'available') && capSelect) {
+        capSelect.value = "all";
     }
+
+    const btnAll = document.getElementById("filter-all");
+    const btnAvailable = document.getElementById("filter-available");
+
+    if (btnAll) {
+        btnAll.className = "px-3.5 py-1.5 rounded-lg text-xs font-medium " + 
+            (type === 'all' ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-100") + 
+            " transition-all h-[32px] flex items-center";
+    }
+
+    if (btnAvailable) {
+        btnAvailable.className = "px-3.5 py-1.5 rounded-lg text-xs font-medium " + 
+            (type === 'available' ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-100") + 
+            " transition-all h-[32px] flex items-center";
+    }
+
     renderTables();
+}
+
+// Handle the table capacity selector value change
+function handleCapacityFilterChange(value) {
+    if (value === 'all') {
+        filterTables('all');
+    } else {
+        filterTables('cap_' + value);
+    }
 }
 
 // Re-renders list logs for active bookings
@@ -366,7 +461,8 @@ function clearAlert() {
 // Window init loading logic
 window.onload = function() {
     updateNavigationClock();
-    configureDateTimeInputLimits();
+    configureDateInputLimits();
+    populateTimeSelect();
     loadAppFromBackend();
     
     // Periodically update clock
