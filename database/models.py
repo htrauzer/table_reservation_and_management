@@ -11,6 +11,9 @@ class TableModel(Base):
     capacity = Column(Integer, nullable=False)
     is_active = Column(Boolean, default=True)
 
+    zone = Column(String, nullable=False, default="main-hall")
+    is_active = Column(Boolean, default=True)
+
     # Bi-directional relationship
     reservations = relationship("ReservationModel", back_populates="table", cascade="all, delete-orphan")
 
