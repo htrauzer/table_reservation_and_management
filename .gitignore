@@ -1,0 +1,27 @@
+# --- Python Virtual Environments ---
+venv/
+.venv/
+env/
+ENV/
+
+# --- Python Cache and Compiled Files ---
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# --- Databases ---
+*.db
+*.sqlite
+*.sqlite3
+
+# --- Configuration & Secrets ---
+.env
+*.local
+
+# --- IDEs & OS Files ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
