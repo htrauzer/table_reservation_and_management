@@ -30,3 +30,62 @@ const configureDateTimeInputLimits = () => {
         dtInput.min = now.toISOString().slice(0, 16);
     }
 };
+
+
+// Scans active calendar values to evaluate real-time reservation scheduling overlaps
+function evaluateCalendarSchedule() {
+    const dtInput = document.getElementById("cust-time");
+    if (!dtInput) return;
+
+    const selectedTimeVal = dtInput.value;
+    
+    // If no specific booking date/time is selected yet, fall back to default table statuses
+    if (!selectedTimeVal) {
+        backendTables.forEach(table => {
+            table.status = table.is_active ? 'available' : 'out_of_service';
+        });
+        renderTables();
+        return;
+    }
+
+    const targetTime = new Date(selectedTimeVal);
+
+    backendTables.forEach(table => {
+        if (!table.is_active) {
+            table.status = 'out_of_service';
+            return;
+        }
+
+        // Check if any booking reservation conflicts exist within the scheduling window
+        const overlappingConflict = backendReservations.find(res => {
+            if (res.table.id !== table.id) return false;
+            
+            const existingResTime = new Date(res.reservation_time);
+            const diffMs = Math.abs(targetTime - existingResTime);
+            const diffHours = diffMs / (1000 * 60 * 60);
+            return diffHours < RESERVATION_BUFFER_HOURS;
+        });
+
+        if (overlappingConflict) {
+            table.status = 'reserved';
+            table.assignedGuest = overlappingConflict.customer_name;
+        } else {
+            table.status = 'available';
+        }
+    });
+
+    // Deselect selected table if it becomes booked at the newly chosen date-time
+    if (selectedTable) {
+        const refreshedState = backendTables.find(t => t.id === selectedTable.id);
+        if (refreshedState && refreshedState.status !== 'available') {
+            selectedTable = null;
+            document.getElementById("booking-form").reset();
+            document.getElementById("booking-form").classList.add("opacity-50", "pointer-events-none");
+            document.getElementById("table-info-card").innerHTML = `<p class="text-sm font-semibold text-slate-500 text-center py-4">No Table Selected</p>`;
+            dtInput.value = selectedTimeVal; // Retain current time choice
+        }
+    }
+
+    renderTables();
+    updateReservationsList();
+}
