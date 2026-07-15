@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-slate-50">
+<html lang="en" class="min-h-screen bg-slate-50">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,12 +11,10 @@
     <!-- FontAwesome for floorplan icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-     <!-- Link External Separated Stylesheet -->
+    <!-- Link External Separated Stylesheet -->
     <link rel="stylesheet" href="/static/css/styles.css">
 </head>
-
-
-<body class="h-full flex flex-col text-slate-800"> 
+<body class="min-h-screen flex flex-col text-slate-800">
 
     <!-- TOP NAVIGATION BAR -->
     <nav class="bg-white border-b border-slate-200 shrink-0">
@@ -43,11 +41,12 @@
         </div>
     </nav>
 
-       <!-- MAIN APPLICATION CONTAINER -->
-    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col lg:flex-row gap-6 min-h-0 overflow-y-auto lg:overflow-hidden">
+    <!-- MAIN APPLICATION CONTAINER -->
+    <!-- Changed to xl:flex-row to give breathing room and prevent squeezing -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col xl:flex-row gap-8">
         
         <!-- LEFT: THE FLOORPLAN AND STATUS INDICATORS -->
-        <section class="flex-1 flex flex-col gap-4 min-h-0">
+        <section class="flex-1 flex flex-col gap-4">
             <!-- Filter & Legend Toolbar -->
             <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap gap-4 items-center justify-between">
                 <div class="flex gap-2" id="filter-container">
@@ -69,72 +68,76 @@
                 </div>
             </div>
 
-            <!-- RESTAURANT Blueprint Floor Plan Container -->
-            <div class="flex-1 bg-slate-900 border border-slate-800 rounded-3xl p-6 relative flex flex-col justify-between overflow-auto min-h-[500px] shadow-inner">
-                <div class="absolute inset-0 bg-[radial-gradient(#ffffff10_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none rounded-3xl"></div>
-                
-                <!-- TOP FLOOR SECTION -->
-                <div class="grid grid-cols-12 gap-4 relative z-10">
+            <!-- RESTAURANT Blueprint Floor Plan Container with scroll safeguards -->
+            <!-- Added overflow-x-auto scroll wrapper so blueprint doesn't break/squeese on small screen widths -->
+            <div class="w-full overflow-x-auto rounded-3xl border border-slate-800 shadow-inner bg-slate-900">
+                <div class="min-w-[800px] p-6 relative flex flex-col justify-between min-h-[550px]">
+                    <div class="absolute inset-0 bg-[radial-gradient(#ffffff10_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none rounded-3xl"></div>
                     
-                    <!-- LEFT PRIVATE AREA -->
-                    <div class="col-span-3 bg-slate-800/80 border border-slate-700/50 rounded-2xl p-4 flex flex-col justify-between min-h-[180px]">
-                        <div class="flex items-center justify-between text-[11px] font-bold text-slate-400 tracking-wider uppercase">
-                            <span><i class="fa-solid fa-door-closed mr-1"></i> Private A</span>
+                    <!-- TOP FLOOR SECTION -->
+                    <div class="grid grid-cols-12 gap-4 relative z-10">
+                        
+                        <!-- LEFT PRIVATE AREA -->
+                        <div class="col-span-3 bg-slate-800/80 border border-slate-700/50 rounded-2xl p-4 flex flex-col justify-between min-h-[180px]">
+                            <div class="flex items-center justify-between text-[11px] font-bold text-slate-400 tracking-wider uppercase">
+                                <span><i class="fa-solid fa-door-closed mr-1"></i> Private A</span>
+                            </div>
+                            <div class="flex flex-col items-center justify-center gap-6 py-4" id="private-a-tables"></div>
                         </div>
-                        <div class="flex flex-col items-center justify-center gap-6 py-4" id="private-a-tables"></div>
+
+                        <!-- MAIN HALL -->
+                        <div class="col-span-6 bg-slate-800/40 border border-slate-700/30 rounded-2xl p-4 flex flex-col justify-between min-h-[180px]">
+                            <div class="flex items-center justify-between text-[11px] font-bold text-slate-400 tracking-wider uppercase">
+                                <span><i class="fa-solid fa-hotel mr-1"></i> Main Hall</span>
+                                <span class="text-amber-500/70 text-[10px]"><i class="fa-solid fa-music mr-1"></i> Live Music</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4 py-4 justify-items-center" id="main-hall-tables"></div>
+                        </div>
+
+                        <!-- RIGHT PRIVATE AREA -->
+                        <div class="col-span-3 bg-slate-800/80 border border-slate-700/50 rounded-2xl p-4 flex flex-col justify-between min-h-[180px]">
+                            <div class="flex items-center justify-between text-[11px] font-bold text-slate-400 tracking-wider uppercase">
+                                <span><i class="fa-solid fa-door-closed mr-1"></i> Private B</span>
+                            </div>
+                            <div class="flex flex-col items-center justify-center gap-6 py-4" id="private-b-tables"></div>
+                        </div>
+
                     </div>
 
-                    <!-- MAIN HALL -->
-                    <div class="col-span-6 bg-slate-800/40 border border-slate-700/30 rounded-2xl p-4 flex flex-col justify-between min-h-[180px]">
-                        <div class="flex items-center justify-between text-[11px] font-bold text-slate-400 tracking-wider uppercase">
-                            <span><i class="fa-solid fa-hotel mr-1"></i> Main Hall</span>
-                            <span class="text-amber-500/70 text-[10px]"><i class="fa-solid fa-music mr-1"></i> Live Music</span>
+                    <!-- MIDDLE CENTER: KITCHEN -->
+                    <div class="my-6 grid grid-cols-12 gap-4 relative z-10">
+                        <div class="col-start-4 col-span-6 bg-slate-850 border border-slate-700 rounded-2xl p-4 flex items-center justify-center shadow-lg relative overflow-hidden h-24">
+                            <div class="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-red-500 via-amber-500 to-red-500 animate-pulse"></div>
+                            <div class="text-center">
+                                <span class="text-[10px] font-black text-amber-500 tracking-widest uppercase block mb-1">
+                                    <i class="fa-solid fa-fire-burner animate-bounce mr-1"></i> STAFF ONLY
+                                </span>
+                                <h3 class="text-sm font-bold text-slate-100 uppercase tracking-wider">
+                                    <i class="fa-solid fa-kitchen-set mr-1.5 text-slate-400"></i>Central Kitchen
+                                </h3>
+                            </div>
                         </div>
-                        <div class="grid grid-cols-2 gap-4 py-4 justify-items-center" id="main-hall-tables"></div>
                     </div>
 
-                    <!-- RIGHT PRIVATE AREA -->
-                    <div class="col-span-3 bg-slate-800/80 border border-slate-700/50 rounded-2xl p-4 flex flex-col justify-between min-h-[180px]">
-                        <div class="flex items-center justify-between text-[11px] font-bold text-slate-400 tracking-wider uppercase">
-                            <span><i class="fa-solid fa-door-closed mr-1"></i> Private B</span>
+                    <!-- BOTTOM FLOOR SECTION (TERRACE AREA) -->
+                    <div class="relative z-10">
+                        <div class="bg-amber-950/20 border border-amber-900/30 rounded-2xl p-4 flex flex-col justify-between min-h-[130px]">
+                            <div class="flex items-center justify-between text-[11px] font-bold text-amber-500/80 tracking-wider uppercase">
+                                <span><i class="fa-solid fa-umbrella-beach mr-1"></i> Outdoor Terrace</span>
+                            </div>
+                            <div class="flex justify-around items-center gap-4 py-4" id="terrace-tables"></div>
                         </div>
-                        <div class="flex flex-col items-center justify-center gap-6 py-4" id="private-b-tables"></div>
                     </div>
 
                 </div>
-
-                <!-- MIDDLE CENTER: KITCHEN -->
-                <div class="my-6 grid grid-cols-12 gap-4 relative z-10">
-                    <div class="col-start-4 col-span-6 bg-slate-850 border border-slate-700 rounded-2xl p-4 flex items-center justify-center shadow-lg relative overflow-hidden h-24">
-                        <div class="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-red-500 via-amber-500 to-red-500 animate-pulse"></div>
-                        <div class="text-center">
-                            <span class="text-[10px] font-black text-amber-500 tracking-widest uppercase block mb-1">
-                                <i class="fa-solid fa-fire-burner animate-bounce mr-1"></i> STAFF ONLY
-                            </span>
-                            <h3 class="text-sm font-bold text-slate-100 uppercase tracking-wider">
-                                <i class="fa-solid fa-kitchen-set mr-1.5 text-slate-400"></i>Central Kitchen
-                            </h3>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- BOTTOM FLOOR SECTION (TERRACE AREA) -->
-                <div class="relative z-10">
-                    <div class="bg-amber-950/20 border border-amber-900/30 rounded-2xl p-4 flex flex-col justify-between min-h-[130px]">
-                        <div class="flex items-center justify-between text-[11px] font-bold text-amber-500/80 tracking-wider uppercase">
-                            <span><i class="fa-solid fa-umbrella-beach mr-1"></i> Outdoor Terrace</span>
-                        </div>
-                        <div class="flex justify-around items-center gap-4 py-4" id="terrace-tables"></div>
-                    </div>
-                </div>
-
             </div>
         </section>
 
-                <!-- RIGHT: BOOKING CONTROL PANEL & FORM -->
-        <section class="w-full lg:w-[380px] shrink-0 flex flex-col gap-6">
+        <!-- RIGHT: BOOKING CONTROL PANEL & FORM -->
+        <!-- Responsive wrapper: goes side-by-side on xl (1280px) and stacks neatly below on smaller screens with gap-8 -->
+        <section class="w-full xl:w-[380px] shrink-0 flex flex-col gap-6">
             
-            <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 flex flex-col min-h-0 overflow-y-auto">
+            <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 flex flex-col">
                 <div class="border-b border-slate-100 pb-4 mb-4">
                     <h2 class="text-lg font-bold text-slate-900 flex items-center">
                         <i class="fa-solid fa-calendar-check mr-2 text-amber-600"></i>
@@ -212,7 +215,7 @@
             </div>
 
             <!-- Booking History Log -->
-            <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-5 flex flex-col min-h-[160px] max-h-[220px]">
+            <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-5 flex flex-col min-h-[160px] max-h-[240px]">
                 <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2 flex items-center justify-between border-b border-slate-100 pb-2">
                     <span><i class="fa-solid fa-list-check mr-1.5 text-slate-400"></i>Active Bookings Log</span>
                     <span class="text-[10px] bg-slate-100 px-2 py-0.5 rounded-md text-slate-500" id="total-bookings-count">0 Booked</span>
@@ -227,6 +230,5 @@
 
     <!-- External Separated JavaScript Application Logic -->
     <script src="/static/js/app.js" defer></script>
-
 </body>
 </html>
