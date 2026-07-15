@@ -273,3 +273,37 @@ function filterTables(type) {
     }
     renderTables();
 }
+
+// Re-renders list logs for active bookings
+function updateReservationsList() {
+    const listContainer = document.getElementById("active-reservations-list");
+    const countBadge = document.getElementById("total-bookings-count");
+    if (countBadge) {
+        countBadge.innerText = `${backendReservations.length} Booked`;
+    }
+
+    if (!listContainer) return;
+
+    if (backendReservations.length === 0) {
+        listContainer.innerHTML = `<p class="text-xs text-slate-400 text-center py-6 font-medium">No reservations completed yet.</p>`;
+        return;
+    }
+
+    listContainer.innerHTML = "";
+    [...backendReservations].reverse().forEach(res => {
+        const dateObj = new Date(res.reservation_time);
+        const formattedDate = dateObj.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+        listContainer.innerHTML += `
+            <div class="bg-slate-50 border border-slate-100 p-2.5 rounded-xl text-xs flex items-center justify-between gap-2.5 hover:border-slate-200 transition-all">
+                <div class="min-w-0">
+                    <h5 class="font-bold text-slate-900 truncate">${res.customer_name}</h5>
+                    <p class="text-[10px] text-slate-500 font-medium">${formattedDate} • ${res.party_size} Guests</p>
+                </div>
+                <span class="bg-slate-200 text-slate-800 font-black px-2 py-1 rounded-md text-[10px] shrink-0">
+                    Table ${res.table.table_number}
+                </span>
+            </div>
+        `;
+    });
+}
