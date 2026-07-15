@@ -201,3 +201,58 @@ function selectTable(id) {
     }
     clearAlert();
 }
+
+// Validates client inputs and submits booking parameters to FastAPI POST router
+async function handleFormSubmission(event) {
+    event.preventDefault();
+    if (!selectedTable) return;
+
+    const name = document.getElementById("cust-name").value.trim();
+    const email = document.getElementById("cust-email").value.trim();
+    const phone = document.getElementById("cust-phone").value.trim();
+    const partySize = parseInt(document.getElementById("cust-party").value);
+    const time = document.getElementById("cust-time").value;
+
+    // Safety constraint: double-check that guests do not exceed selected table capacities
+    if (partySize > selectedTable.capacity) {
+        showAlert("danger", `Over-capacity! Table ${selectedTable.table_number} holds up to ${selectedTable.capacity} guests.`);
+        return;
+    }
+
+    const payload = {
+        customer_name: name,
+        customer_email: email,
+        customer_phone: phone,
+        party_size: partySize,
+        reservation_time: new Date(time).toISOString(),
+        table_id: selectedTable.id
+    };
+
+    try {
+        const response = await fetch('/api/reservations/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || data.detail || "Server validation failed.");
+        }
+
+        // Clean user input controls upon successful transaction
+        selectedTable = null;
+        document.getElementById("booking-form").reset();
+        document.getElementById("booking-form").classList.add("opacity-50", "pointer-events-none");
+        document.getElementById("table-info-card").innerHTML = `<p class="text-sm font-semibold text-slate-500 text-center py-4">No Table Selected</p>`;
+        
+        showAlert("success", "Reservation successfully completed! Checked and recorded into system database.");
+        
+        // Refresh database states dynamically
+        await loadAppFromBackend();
+
+    } catch (err) {
+        showAlert("danger", err.message);
+    }
+}
