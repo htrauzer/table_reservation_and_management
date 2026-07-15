@@ -146,3 +146,58 @@ function renderTables() {
         zoneContainer.appendChild(tableNode);
     });
 }
+
+// Triggers validation checks and highlights clicked floor plan tables
+function selectTable(id) {
+    const dtInput = document.getElementById("cust-time");
+    if (!dtInput || !dtInput.value) {
+        showAlert("warning", "Please select your booking date & time first before choosing a table.");
+        return;
+    }
+
+    const table = backendTables.find(t => t.id === id);
+    if (!table) return;
+
+    if (table.status === 'out_of_service') {
+        showAlert("warning", `Table ${table.table_number} is out of service.`);
+        return;
+    }
+    if (table.status === 'reserved') {
+        showAlert("info", `Table ${table.table_number} is already booked at this time by ${table.assignedGuest || 'another guest'}.`);
+        return;
+    }
+
+    selectedTable = table;
+    renderTables();
+
+    // Populate metadata inside the dynamic Reservation detail card
+    const card = document.getElementById("table-info-card");
+    if (card) {
+        card.innerHTML = `
+            <div class="flex items-center justify-between">
+                <div>
+                    <h4 class="text-sm font-bold text-slate-900">Table Selected: ${table.table_number}</h4>
+                    <p class="text-xs text-slate-500">Zone: <span class="capitalize font-semibold">${table.zone.replace('-', ' ')}</span></p>
+                </div>
+                <div class="bg-amber-100 border border-amber-200 px-3 py-1.5 rounded-xl text-center">
+                    <span class="block text-[10px] font-bold text-amber-800 uppercase">Seating</span>
+                    <span class="text-sm font-black text-amber-900">${table.capacity} Pax</span>
+                </div>
+            </div>
+        `;
+    }
+
+    // Activate the registration form
+    document.getElementById("selected-table-id").value = table.id;
+    const partyInput = document.getElementById("cust-party");
+    if (partyInput) {
+        partyInput.max = table.capacity;
+        partyInput.placeholder = `Max ${table.capacity}`;
+    }
+    
+    const form = document.getElementById("booking-form");
+    if (form) {
+        form.classList.remove("opacity-50", "pointer-events-none");
+    }
+    clearAlert();
+}
