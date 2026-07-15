@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field, EmailStr, ConfigDict
 class TableBase(BaseModel):
     table_number: str = Field(..., min_length=1, max_length=10, json_schema_extra={"example": "T1"})
     capacity: int = Field(..., gt=0, json_schema_extra={"example": 4})
+    zone: str = Field(default="main-hall", json_schema_extra={"example": "main-hall"})
     is_active: Optional[bool] = True
 
 class TableCreate(TableBase):
