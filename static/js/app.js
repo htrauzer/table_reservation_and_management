@@ -31,6 +31,20 @@ const configureDateTimeInputLimits = () => {
     }
 };
 
+// Load tables and reservations directly from FastAPI database models
+async function loadAppFromBackend() {
+    try {
+        const tablesResponse = await fetch('/api/tables/');
+        backendTables = await tablesResponse.json();
+
+        const reservationsResponse = await fetch('/api/reservations/');
+        backendReservations = await reservationsResponse.json();
+
+        evaluateCalendarSchedule();
+    } catch (err) {
+        showAlert("danger", "Could not connect to FastAPI server. Please verify your Uvicorn backend is running.");
+    }
+}
 
 // Scans active calendar values to evaluate real-time reservation scheduling overlaps
 function evaluateCalendarSchedule() {
@@ -49,6 +63,19 @@ function evaluateCalendarSchedule() {
     }
 
     const targetTime = new Date(selectedTimeVal);
+    const selectedHour = targetTime.getHours();
+
+    // Check operating hours: 10:00 AM to 12:00 AM (midnight)
+    // Note: Hours < 10 (0 to 9) represent early morning bookings which are closed
+    if (selectedHour < 10) {
+        showAlert("danger", "Our restaurant operates between 10:00 and 00:00. Please select an open operating slot.");
+        dtInput.value = ""; // Reset invalid date selection
+        backendTables.forEach(table => {
+            table.status = table.is_active ? 'available' : 'out_of_service';
+        });
+        renderTables();
+        return;
+    }
 
     backendTables.forEach(table => {
         if (!table.is_active) {
@@ -89,7 +116,6 @@ function evaluateCalendarSchedule() {
     renderTables();
     updateReservationsList();
 }
-
 
 // Builds and appends responsive table map models into specific floor plan zones
 function renderTables() {
