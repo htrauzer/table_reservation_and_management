@@ -33,11 +33,12 @@ def test_create_table_success(db_session: Session):
 def test_create_table_duplicate_number_raises_exception(db_session: Session):
     """Test that creating a table with a duplicate table_number raises RestaurantException."""
     table_in = TableCreate(table_number="T1", capacity=2, is_active=True)
+    # The first creation works
     ReservationService.create_table(db_session, table_in)
-
-    # Attempt to create duplicate
+    
+    # Attempt to create duplicate (notice the fix to use db_session and table_in)
     with pytest.raises(RestaurantException) as exc_info:
-        ReservationService.create_table(db, duplicate_table_data)
+        ReservationService.create_table(db_session, table_in)
 
     assert "already exists" in str(exc_info.value.detail)
 
