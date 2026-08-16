@@ -1,4 +1,5 @@
 import datetime
+from datetime import timezone
 from typing import List, Optional
 from sqlalchemy.orm import Session
 from database.models import TableModel, ReservationModel
