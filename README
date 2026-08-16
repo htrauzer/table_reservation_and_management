@@ -30,4 +30,7 @@ restaurant_system/
 
 
 
-
+1. python -m venv .venv         #instalation
+2. .venv\Scripts\Activate.ps1   #activating     ls -> .venv -> .\.venv\Scripts\activate
+3. (venv)C:\User\Halyna...      #isActive    
+4. deactivate                   #shutdown venv  
