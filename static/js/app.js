@@ -334,10 +334,21 @@ async function handleFormSubmission(event) {
             body: JSON.stringify(payload)
         });
 
-        const data = await response.json();
+        // 1. Read raw response text first so we don't crash on non-JSON HTML error pages
+        const responseText = await response.text();
+        let responseData = {};
 
+        try {
+            responseData = JSON.parse(responseText);
+        } catch (e) {
+            // If response isn't JSON (e.g. 500 Internal Server Error page)
+            console.error("Server returned non-JSON response:", responseText);
+        }
+
+        // 2. Safely evaluate HTTP status errors
         if (!response.ok) {
-            throw new Error(data.error || data.detail || "Server validation failed.");
+            const errorMessage = responseData.error || responseData.detail || responseText || `Server error (${response.status})`;
+            throw new Error(errorMessage);
         }
 
         // Clean user input controls upon successful transaction
