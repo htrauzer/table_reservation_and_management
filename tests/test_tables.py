@@ -101,22 +101,60 @@ def test_list_all_tables(client):
 # =====================================================================
 
 def test_create_reservation_success(client):
-    """POST /api/reservations/ - Happy path booking during valid operating hours."""
+    """Happy Path: Creating a valid reservation returns 201 Created."""
+    # Generate a time 2 days in the future during operating hours (18:00)
     future_time = (datetime.utcnow() + timedelta(days=2)).replace(hour=18, minute=0, second=0)
-    
+
     payload = {
-        "customer_name": "Jane Doe",
-        "customer_email": "jane@example.com",
+        "customer_name": "John Doe",
+        "customer_email": "john.doe@example.com",
         "customer_phone": "+1234567890",
         "party_size": 4,
         "reservation_time": future_time.isoformat(),
         "table_id": 1
     }
     response = client.post("/api/reservations/", json=payload)
+    
     assert response.status_code == 201
+
+def test_create_reservation_timezone_stripping(client):
+    """Schema Test: Ensures offset-aware ISO timestamps are converted cleanly."""
+    # Generate a future time string with explicit timezone offset (+02:00)
+    future_time_str = (datetime.utcnow() + timedelta(days=2)).replace(hour=19, minute=0, second=0).strftime("%Y-%m-%dT%H:%M:%S+02:00")
+
+    payload = {
+        "customer_name": "John Doe",
+        "customer_email": "john@example.com",
+        "customer_phone": "+1234567890",
+        "party_size": 2,
+        "reservation_time": future_time_str,
+        "table_id": 1
+    }
+    response = client.post("/api/reservations/", json=payload)
+    assert response.status_code == 201
+
+
+def test_fetch_all_reservations_populated(client):
+    """Returns all created reservations."""
+    future_time = (datetime.utcnow() + timedelta(days=2)).replace(hour=18, minute=0, second=0)
+
+    payload = {
+        "customer_name": "Alice Smith",
+        "customer_email": "alice@example.com",
+        "customer_phone": "+1987654321",
+        "party_size": 2,
+        "reservation_time": future_time.isoformat(),
+        "table_id": 1
+    }
+    # Ensure creation succeeds first
+    create_res = client.post("/api/reservations/", json=payload)
+    assert create_res.status_code == 201
+
+    response = client.get("/api/reservations/")
+    assert response.status_code == 200
     data = response.json()
-    assert data["customer_name"] == "Jane Doe"
-    assert data["table_id"] == 1
+    assert len(data) == 1
+    assert data[0]["customer_name"] == "Alice Smith"
 
 
 def test_list_all_reservations(client):
