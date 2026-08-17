@@ -1,5 +1,6 @@
 # (Integration Tests) Sends API requests using FastAPI's TestClient to test creating, updating, canceling, and fetching reservations.
 
+from datetime import datetime, timedelta
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -10,7 +11,7 @@ from main import app
 from database.connection import Base, get_db
 from database.models import TableModel
 
-# 1. Isolated test database configuration
+# 1. Isolated test database setup
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 
 engine = create_engine(
@@ -23,7 +24,7 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 
 @pytest.fixture(scope="function")
 def db_session():
-    """Creates tables and seeds test tables before each test, tearing down after."""
+    """Creates database tables and seeds test data before each test."""
     Base.metadata.create_all(bind=engine)
     session = TestingSessionLocal()
     
@@ -55,17 +56,21 @@ def client(db_session):
     app.dependency_overrides.clear()
 
 
+# =====================================================================
 # 1. CREATION TESTS (POST /api/reservations/)
-
+# =====================================================================
 
 def test_create_reservation_success(client):
     """Happy Path: Creating a valid reservation returns 201 Created."""
+    # Dynamic future time (2 days ahead at 18:00)
+    future_time = (datetime.utcnow() + timedelta(days=2)).replace(hour=18, minute=0, second=0)
+
     payload = {
         "customer_name": "John Doe",
         "customer_email": "john.doe@example.com",
         "customer_phone": "+1234567890",
         "party_size": 4,
-        "reservation_time": "2026-07-10T19:00:00",
+        "reservation_time": future_time.isoformat(),
         "table_id": 1
     }
     response = client.post("/api/reservations/", json=payload)
@@ -82,12 +87,13 @@ def test_create_reservation_success(client):
 
 def test_create_reservation_invalid_email(client):
     """Validation Error: Invalid email format triggers 422 Unprocessable Entity."""
+    future_time = (datetime.utcnow() + timedelta(days=2)).replace(hour=18, minute=0, second=0)
     payload = {
         "customer_name": "Jane Doe",
         "customer_email": "invalid-email-string",
         "customer_phone": "+1234567890",
         "party_size": 2,
-        "reservation_time": "2026-07-10T20:00:00",
+        "reservation_time": future_time.isoformat(),
         "table_id": 1
     }
     response = client.post("/api/reservations/", json=payload)
@@ -96,12 +102,13 @@ def test_create_reservation_invalid_email(client):
 
 def test_create_reservation_invalid_phone(client):
     """Validation Error: Phone number failing regex pattern triggers 422."""
+    future_time = (datetime.utcnow() + timedelta(days=2)).replace(hour=18, minute=0, second=0)
     payload = {
         "customer_name": "Jane Doe",
         "customer_email": "jane@example.com",
         "customer_phone": "abc-not-a-phone",
         "party_size": 2,
-        "reservation_time": "2026-07-10T20:00:00",
+        "reservation_time": future_time.isoformat(),
         "table_id": 1
     }
     response = client.post("/api/reservations/", json=payload)
@@ -110,12 +117,13 @@ def test_create_reservation_invalid_phone(client):
 
 def test_create_reservation_invalid_party_size(client):
     """Validation Error: party_size <= 0 triggers 422 (violates gt=0 schema check)."""
+    future_time = (datetime.utcnow() + timedelta(days=2)).replace(hour=18, minute=0, second=0)
     payload = {
         "customer_name": "Jane Doe",
         "customer_email": "jane@example.com",
         "customer_phone": "+1234567890",
         "party_size": 0,
-        "reservation_time": "2026-07-10T20:00:00",
+        "reservation_time": future_time.isoformat(),
         "table_id": 1
     }
     response = client.post("/api/reservations/", json=payload)
@@ -124,21 +132,23 @@ def test_create_reservation_invalid_party_size(client):
 
 def test_create_reservation_timezone_stripping(client):
     """Schema Test: Ensures offset-aware ISO timestamps are converted cleanly."""
+    future_time_str = (datetime.utcnow() + timedelta(days=2)).replace(hour=19, minute=0, second=0).strftime("%Y-%m-%dT%H:%M:%S+02:00")
+
     payload = {
         "customer_name": "John Doe",
         "customer_email": "john@example.com",
         "customer_phone": "+1234567890",
         "party_size": 2,
-        "reservation_time": "2026-07-10T19:00:00+02:00",  # Included timezone
+        "reservation_time": future_time_str,
         "table_id": 1
     }
     response = client.post("/api/reservations/", json=payload)
     assert response.status_code == 201
 
 
-
+# =====================================================================
 # 2. READ TESTS (GET /api/reservations/)
-
+# =====================================================================
 
 def test_fetch_all_reservations_empty(client):
     """Returns an empty list when no reservations exist."""
@@ -149,15 +159,18 @@ def test_fetch_all_reservations_empty(client):
 
 def test_fetch_all_reservations_populated(client):
     """Returns all created reservations."""
+    future_time = (datetime.utcnow() + timedelta(days=2)).replace(hour=18, minute=0, second=0)
+
     payload = {
         "customer_name": "Alice Smith",
         "customer_email": "alice@example.com",
         "customer_phone": "+1987654321",
         "party_size": 2,
-        "reservation_time": "2026-08-01T18:00:00",
+        "reservation_time": future_time.isoformat(),
         "table_id": 1
     }
-    client.post("/api/reservations/", json=payload)
+    create_res = client.post("/api/reservations/", json=payload)
+    assert create_res.status_code == 201
 
     response = client.get("/api/reservations/")
     assert response.status_code == 200
@@ -171,7 +184,6 @@ def test_fetch_reservations_pagination(client):
     response = client.get("/api/reservations/?skip=0&limit=5")
     assert response.status_code == 200
     assert isinstance(response.json(), list)
-
 
 
 # 3. UPDATE & CANCEL TESTS (PUT /api/reservations/{id} and DELETE /api/reservations/{id})
