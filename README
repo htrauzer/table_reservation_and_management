@@ -30,7 +30,102 @@ restaurant_system/
 
 
 
-1. python -m venv .venv         #instalation
-2. .venv\Scripts\Activate.ps1   #activating     ls -> .venv -> .\.venv\Scripts\activate
-3. (venv)C:\User\Halyna...      #isActive    
-4. deactivate                   #shutdown venv  
+# Table Reservation & Management System
+
+---
+
+## 📌 Project Overview
+
+This project simulates an interactive restaurant layout where clients can select and reserve tables based on their specific preferences:
+- **Date & Time:** Reserve tables for specific time slots.
+- **Party Size:** Filter tables suitable for the number of guests.
+- **Zone Preference:** Choose seating options based on restaurant zones (e.g., Main Hall, Terrace, VIP).
+- **Reservation Form:** Interactive booking flow with immediate confirmation handling.
+
+---
+
+## 🛠️ Tech Stack
+
+- **Backend:** Python (FastAPI / ASGI server framework)
+- **Database:** SQLite
+- **Frontend:** JavaScript (Vanilla ES6+), HTML5, CSS3
+- **Server Runner:** Uvicorn
+
+---
+
+## 🚀 Quick Start
+
+### 1. Prerequisites
+Ensure you have **Python 3.8+** installed on your system.
+
+### 2. Installation
+Clone the repository and install required dependencies:
+```bash
+git clone https://github.com/your-username/table_reservation_and_mangement.git
+cd table_reservation_and_mangement
+pip install -r requirements.txt
+```
+
+*(Note: Ensure FastAPI, Uvicorn, and any related dependencies are listed in `requirements.txt`)*
+
+### 3. Run the Application
+Launch the development server using Uvicorn:
+```bash
+uvicorn main:app --reload
+```
+
+Once running, open your browser and navigate to:
+```text
+http://127.0.0.1:8000
+```
+
+---
+
+## ✨ Key Features
+
+- 🗺️ **Visual Floor Plan Layout:** Interactive UI mapping out restaurant tables and zones.
+- 📅 **Dynamic Scheduling:** Check table availability dynamically across selected dates and times.
+- 👥 **Capacity Filtering:** Match party sizes with appropriate table seating capacities.
+- 📝 **Reservation Form:** Streamlined client interface for entering booking details.
+- 💾 **SQLite Integration:** Persistence layer storing table definitions, availability statuses, and active reservations.
+
+---
+
+## 📂 Project Structure
+
+```text
+
+table_reservation_and_mangement/
+│
+├── main.py                     # The "Start Button" (Only initializes the app)
+├── database/                   # Everything SQL & DB related
+│   ├── __init__.py
+│   ├── connection.py           # Engine & SessionLocal setup
+│   └── models.py               # SQLAlchemy Database Models
+│
+├── api/                        # Router modules split by domain
+│   ├── __init__.py
+│   ├── schemas.py              # Pydantic schemas (Request/Response validation)
+│   ├── reservations.py         # Guest & Admin Reservation endpoints
+│   └── tables.py               # Physical Layout Management endpoints 
+│
+├── services/                   # The "Brain" of your application
+|    ├── __init__.py
+|    └── reservation_service.py # Core algorithms, table-matching logic, time-slot sorting
+|
+├── errors/                     # Custom exceptions and global handlers
+│   ├── __init__.py
+│   └── handlers.py
+│
+├── tests/                      # Regressive automated testing suite
+│   ├── __init__.py
+│   └── test_reservations.py
+│
+├── templates/                  # Frontend HTML/CSS layouts (If serving pages)
+│   └── index.html
+│
+├──static
+│   ├── css/styles.css
+│   └── js/app.js
+│
+└─ README.md                    # Project documentation
