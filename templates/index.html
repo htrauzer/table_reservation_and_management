@@ -11,18 +11,18 @@
     <!-- FontAwesome for floorplan icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Link External Separated Stylesheet -->
+    <!-- External Stylesheet -->
     <link rel="stylesheet" href="/static/css/styles.css">
 </head>
-<body class="min-h-screen flex flex-col text-slate-800">
+<body class="min-h-screen flex flex-col text-slate-800 font-sans">
 
     <!-- TOP NAVIGATION BAR -->
-    <nav class="bg-white border-b border-slate-200 shrink-0">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <header class="bg-white border-b border-slate-200 shrink-0">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" aria-label="Main Navigation">
             <div class="flex justify-between h-16 items-center">
                 <div class="flex items-center space-x-3">
                     <div class="bg-amber-600 text-white p-2.5 rounded-xl shadow-md shadow-amber-600/20">
-                        <i class="fa-solid fa-utensils text-xl"></i>
+                        <i class="fa-solid fa-utensils text-xl" aria-hidden="true"></i>
                     </div>
                     <div>
                         <h1 class="text-xl font-bold text-slate-900 tracking-tight">Table Reservation</h1>
@@ -35,31 +35,31 @@
                         Backend Connected
                     </span>
                     <span class="text-slate-400">|</span>
-                    <span class="text-slate-600" id="current-time-display">July 2026</span>
+                    <span class="text-slate-600" id="current-time-display">August 2026</span>
                 </div>
             </div>
-        </div>
-    </nav>
+        </nav>
+    </header>
 
     <!-- MAIN APPLICATION CONTAINER -->
     <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col xl:flex-row gap-8">
         
         <!-- LEFT: THE FLOORPLAN AND STATUS INDICATORS -->
-        <section class="flex-1 flex flex-col gap-4">
+        <section class="flex-1 flex flex-col gap-4" aria-label="Floorplan Layout">
             
             <!-- Toolbar: Reservation Time Selection & Filters -->
             <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
                 <!-- Left Side: Filters -->
                 <div class="flex flex-wrap gap-3 w-full md:w-auto justify-start items-center" id="filter-container">
-                    <button onclick="filterTables('all')" id="filter-all" class="px-3.5 py-1.5 rounded-lg text-xs font-medium bg-slate-900 text-white transition-all h-[32px] flex items-center">
+                    <button type="button" onclick="filterTables('all')" id="filter-all" class="px-3.5 py-1.5 rounded-lg text-xs font-medium bg-slate-900 text-white transition-all h-[32px] flex items-center">
                         All Tables
                     </button>
-                    <button onclick="filterTables('available')" id="filter-available" class="px-3.5 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-100 transition-all h-[32px] flex items-center">
+                    <button type="button" onclick="filterTables('available')" id="filter-available" class="px-3.5 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-100 transition-all h-[32px] flex items-center">
                         Available
                     </button>
                     
                     <div class="flex items-center gap-2 h-[32px]">
-                        <span class="text-xs font-bold text-slate-600 tracking-wider shrink-0">Table for:</span>
+                        <label for="capacity-filter" class="text-xs font-bold text-slate-600 tracking-wider shrink-0">Table for:</label>
                         <div class="relative">
                             <select id="capacity-filter" onchange="handleCapacityFilterChange(this.value)"
                                 class="appearance-none bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 text-xs font-semibold rounded-lg pl-3 pr-8 py-1.5 focus:bg-white focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none transition-all cursor-pointer h-[32px] leading-tight">
@@ -71,7 +71,7 @@
                                 <option value="10">10+</option>
                             </select>
                             <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-slate-500">
-                                <i class="fa-solid fa-chevron-down text-[9px]"></i>
+                                <i class="fa-solid fa-chevron-down text-[9px]" aria-hidden="true"></i>
                             </div>
                         </div>
                     </div>
@@ -79,14 +79,14 @@
 
                 <!-- Right Side: Reservation Time Dropdown -->
                 <div class="flex items-center gap-3 w-full md:w-auto justify-start md:justify-end">
-                    <span class="text-xs font-extrabold text-slate-700 tracking-wider shrink-0">Reservation time:</span>
+                    <label for="time-select" class="text-xs font-extrabold text-slate-700 tracking-wider shrink-0">Reservation time:</label>
                     <div class="relative w-full md:w-44">
                         <select id="time-select" onchange="handleTimeSelectChange(this.value)"
                             class="w-full appearance-none bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 text-xs font-semibold rounded-lg pl-3 pr-8 py-1.5 focus:bg-white focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none transition-all cursor-pointer h-[32px] leading-tight">
                             <!-- Dynamic options loaded via JS -->
                         </select>
                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-slate-500">
-                            <i class="fa-solid fa-chevron-down text-[9px]"></i>
+                            <i class="fa-solid fa-chevron-down text-[9px]" aria-hidden="true"></i>
                         </div>
                     </div>
                 </div>
@@ -103,7 +103,7 @@
                         <!-- LEFT PRIVATE AREA -->
                         <div class="col-span-3 bg-slate-800/80 border border-slate-700/50 rounded-2xl p-4 flex flex-col justify-between min-h-[330px]">
                             <div class="flex items-center justify-between text-[11px] font-bold text-slate-400 tracking-wider uppercase">
-                                <span><i class="fa-solid fa-door-closed mr-1"></i> Private A</span>
+                                <span><i class="fa-solid fa-door-closed mr-1" aria-hidden="true"></i> Private A</span>
                             </div>
                             <div class="flex flex-col items-center justify-center gap-8 py-6" id="private-a-tables"></div>
                             <div class="text-[9px] text-center text-slate-500 font-semibold tracking-wider">Quiet Dining Zone</div>
@@ -114,22 +114,22 @@
                             <!-- MAIN HALL -->
                             <div class="bg-slate-800/40 border border-slate-700/30 rounded-2xl p-4 flex flex-col justify-between min-h-[180px] flex-1">
                                 <div class="flex items-center justify-between text-[11px] font-bold text-slate-400 tracking-wider uppercase">
-                                    <span><i class="fa-solid fa-hotel mr-1"></i> Main Hall</span>
-                                    <span class="text-amber-500/70 text-[10px]"><i class="fa-solid fa-music mr-1"></i> Live Music</span>
+                                    <span><i class="fa-solid fa-hotel mr-1" aria-hidden="true"></i> Main Hall</span>
+                                    <span class="text-amber-500/70 text-[10px]"><i class="fa-solid fa-music mr-1" aria-hidden="true"></i> Live Music</span>
                                 </div>
                                 <div class="grid grid-cols-2 gap-4 py-4 justify-items-center" id="main-hall-tables"></div>
                             </div>
 
                             <!-- MIDDLE CENTER: KITCHEN -->
-                            <div class="bg-slate-850 border border-slate-700 rounded-2xl p-4 flex items-center justify-center shadow-lg relative overflow-hidden h-28 shrink-0">
+                            <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4 flex items-center justify-center shadow-lg relative overflow-hidden h-28 shrink-0">
                                 <div class="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-red-500 via-amber-500 to-red-500 animate-pulse"></div>
                                 <div class="text-center">
                                     <span class="text-[10px] font-black text-amber-500 tracking-widest uppercase block mb-1">
-                                        <i class="fa-solid fa-fire-burner animate-bounce mr-1"></i> STAFF ONLY
+                                        <i class="fa-solid fa-fire-burner animate-bounce mr-1" aria-hidden="true"></i> STAFF ONLY
                                     </span>
-                                    <h3 class="text-sm font-bold text-slate-100 uppercase tracking-wider">
-                                        <i class="fa-solid fa-kitchen-set mr-1.5 text-slate-400"></i>Central Kitchen
-                                    </h3>
+                                    <h2 class="text-sm font-bold text-slate-100 uppercase tracking-wider">
+                                        <i class="fa-solid fa-kitchen-set mr-1.5 text-slate-400" aria-hidden="true"></i>Central Kitchen
+                                    </h2>
                                 </div>
                             </div>
                         </div>
@@ -137,7 +137,7 @@
                         <!-- RIGHT PRIVATE AREA -->
                         <div class="col-span-3 bg-slate-800/80 border border-slate-700/50 rounded-2xl p-4 flex flex-col justify-between min-h-[330px]">
                             <div class="flex items-center justify-between text-[11px] font-bold text-slate-400 tracking-wider uppercase">
-                                <span><i class="fa-solid fa-door-closed mr-1"></i> Private B</span>
+                                <span><i class="fa-solid fa-door-closed mr-1" aria-hidden="true"></i> Private B</span>
                             </div>
                             <div class="flex flex-col items-center justify-center gap-8 py-6" id="private-b-tables"></div>
                             <div class="text-[9px] text-center text-slate-500 font-semibold tracking-wider">VIP Hosting Suite</div>
@@ -149,7 +149,7 @@
                     <div class="relative z-10">
                         <div class="bg-amber-950/20 border border-amber-900/30 rounded-2xl p-4 flex flex-col justify-between min-h-[130px]">
                             <div class="flex items-center justify-between text-[11px] font-bold text-amber-500/80 tracking-wider uppercase">
-                                <span><i class="fa-solid fa-umbrella-beach mr-1"></i> Outdoor Terrace</span>
+                                <span><i class="fa-solid fa-umbrella-beach mr-1" aria-hidden="true"></i> Outdoor Terrace</span>
                             </div>
                             <div class="flex justify-around items-center gap-4 py-4" id="terrace-tables"></div>
                         </div>
@@ -160,29 +160,29 @@
         </section>
 
         <!-- RIGHT: BOOKING CONTROL PANEL & FORM -->
-        <section class="w-full xl:w-[380px] shrink-0 flex flex-col gap-6">
+        <section class="w-full xl:w-[380px] shrink-0 flex flex-col gap-6" aria-label="Booking Panel">
             
             <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 flex flex-col">
                 <div class="border-b border-slate-100 pb-4 mb-4">
                     <h2 class="text-lg font-bold text-slate-900 flex items-center">
-                        <i class="fa-solid fa-calendar-check mr-2 text-amber-600"></i>
+                        <i class="fa-solid fa-calendar-check mr-2 text-amber-600" aria-hidden="true"></i>
                         Booking Details
                     </h2>
                     <p class="text-xs text-slate-500 font-medium">Pick Date, Select Reservation Time, then click an available Table</p>
                 </div>
 
                 <!-- Dynamic Notification Bar -->
-                <div id="alert-banner" class="hidden mb-4 p-3 rounded-xl text-xs font-semibold flex items-start gap-2.5 transition-all">
-                    <i id="alert-icon" class="text-sm"></i>
+                <div id="alert-banner" class="hidden mb-4 p-3 rounded-xl text-xs font-semibold flex items-start gap-2.5 transition-all" role="alert">
+                    <i id="alert-icon" class="text-sm" aria-hidden="true"></i>
                     <div id="alert-message"></div>
                 </div>
 
                 <!-- Step 1: Date Selector -->
                 <div class="mb-5 space-y-3.5">
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">1. Select Reservation Date</label>
+                        <label for="cust-date" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">1. Select Reservation Date</label>
                         <div class="relative">
-                            <i class="fa-solid fa-calendar-days absolute left-3.5 top-3 text-slate-400 text-xs"></i>
+                            <i class="fa-solid fa-calendar-days absolute left-3.5 top-3 text-slate-400 text-xs" aria-hidden="true"></i>
                             <input type="date" id="cust-date" required onchange="handleDateChange()"
                                 class="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none transition-all font-semibold text-slate-700">
                         </div>
@@ -199,9 +199,9 @@
                     <input type="hidden" id="selected-table-id" name="table_id">
                     
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Guest Full Name</label>
+                        <label for="cust-name" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Guest Full Name</label>
                         <div class="relative">
-                            <i class="fa-solid fa-user absolute left-3.5 top-3 text-slate-400 text-xs"></i>
+                            <i class="fa-solid fa-user absolute left-3.5 top-3 text-slate-400 text-xs" aria-hidden="true"></i>
                             <input type="text" id="cust-name" required placeholder="John Doe" 
                                 class="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none transition-all font-medium">
                         </div>
@@ -209,17 +209,17 @@
 
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Contact Email</label>
+                            <label for="cust-email" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Contact Email</label>
                             <div class="relative">
-                                <i class="fa-solid fa-envelope absolute left-3.5 top-3 text-slate-400 text-xs"></i>
+                                <i class="fa-solid fa-envelope absolute left-3.5 top-3 text-slate-400 text-xs" aria-hidden="true"></i>
                                 <input type="email" id="cust-email" required placeholder="name@email.com" 
                                     class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none transition-all font-medium">
                             </div>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Mobile Phone</label>
+                            <label for="cust-phone" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Mobile Phone</label>
                             <div class="relative">
-                                <i class="fa-solid fa-phone absolute left-3.5 top-3 text-slate-400 text-xs"></i>
+                                <i class="fa-solid fa-phone absolute left-3.5 top-3 text-slate-400 text-xs" aria-hidden="true"></i>
                                 <input type="tel" id="cust-phone" required placeholder="+1234567890" 
                                     class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none transition-all font-medium">
                             </div>
@@ -227,16 +227,16 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Party Size</label>
+                        <label for="cust-party" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Party Size</label>
                         <div class="relative">
-                            <i class="fa-solid fa-users-line absolute left-3.5 top-3 text-slate-400 text-xs"></i>
+                            <i class="fa-solid fa-users-line absolute left-3.5 top-3 text-slate-400 text-xs" aria-hidden="true"></i>
                             <input type="number" id="cust-party" min="1" required placeholder="2" 
                                 class="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none transition-all font-semibold">
                         </div>
                     </div>
 
                     <button type="submit" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 rounded-xl shadow-md shadow-amber-600/10 hover:shadow-amber-600/20 active:scale-[0.98] transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-circle-check"></i> Submit Reservation
+                        <i class="fa-solid fa-circle-check" aria-hidden="true"></i> Submit Reservation
                     </button>
                 </form>
             </div>
@@ -244,7 +244,7 @@
             <!-- Booking History Log -->
             <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-5 flex flex-col min-h-[160px] max-h-[240px]">
                 <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2 flex items-center justify-between border-b border-slate-100 pb-2">
-                    <span><i class="fa-solid fa-list-check mr-1.5 text-slate-400"></i>Active Bookings Log</span>
+                    <span><i class="fa-solid fa-list-check mr-1.5 text-slate-400" aria-hidden="true"></i>Active Bookings Log</span>
                     <span class="text-[10px] bg-slate-100 px-2 py-0.5 rounded-md text-slate-500" id="total-bookings-count">0 Booked</span>
                 </h3>
                 <div class="flex-1 overflow-y-auto space-y-2 pr-1" id="active-reservations-list">
@@ -255,7 +255,7 @@
         </section>
     </main>
 
-    <!-- External Separated JavaScript Application Logic -->
-    <script src="/static/js/app.js" defer></script>
+    <!-- JavaScript Application Logic -->
+    <script type="module" src="/static/js/app.js"></script>
 </body>
 </html>
